@@ -1,9 +1,12 @@
 package com.example.reminderapp
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,6 +17,7 @@ import kotlinx.android.synthetic.main.content_main.*
 
 /**
  * @author Raeef Ibrahim
+ * student nr 500766393
  */
 
 class MainActivity : AppCompatActivity() {
@@ -21,6 +25,7 @@ class MainActivity : AppCompatActivity() {
     private val reminders = arrayListOf<Reminder>()
     // set array in adapter
     private val reminderAdapter = ReminderAdapter(reminders)
+     val ADD_REMINDER_REQUEST_CODE = 100
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,8 +36,7 @@ class MainActivity : AppCompatActivity() {
         initViews()
 
         fab.setOnClickListener { view ->
-            val reminder = etReminder.text.toString()
-            addReminder(reminder)
+            startAddActivity()
 
 
         }
@@ -61,16 +65,7 @@ class MainActivity : AppCompatActivity() {
         createItemTouchHelper().attachToRecyclerView(rvReminders)
 
     }
-    // add reminder to the reminder list
-    private fun addReminder(reminder: String) {
-        if (reminder.isNotBlank()) {
-            reminders.add(Reminder(reminder))
-            reminderAdapter.notifyDataSetChanged()
-            etReminder.text?.clear()
-        } else {
-            Snackbar.make(etReminder, "You must fill in the input field!", Snackbar.LENGTH_SHORT).show()
-        }
-    }
+
     // Callback which is used to create the ItemTouch helper. Only enables left swipe.
     // Use ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) to also enable right swipe.
     private fun createItemTouchHelper(): ItemTouchHelper {
@@ -91,10 +86,32 @@ class MainActivity : AppCompatActivity() {
                 val position = viewHolder.adapterPosition
                 reminders.removeAt(position)
                 reminderAdapter.notifyDataSetChanged()
+
             }
+
         }
         return ItemTouchHelper(callback)
     }
+
+// Navigate from main activity to Add Activity
+    private fun startAddActivity() {
+        val intent = Intent(this, AddActivity::class.java)
+        startActivityForResult(intent, ADD_REMINDER_REQUEST_CODE)
+    }
+// Get the added reminder in the recycle view
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (resultCode == Activity.RESULT_OK) {
+            when (requestCode) {
+                ADD_REMINDER_REQUEST_CODE -> {
+                    val reminder = data!!.getParcelableExtra<Reminder>(EXTRA_REMINDER)
+                    reminders.add(reminder)
+                    reminderAdapter.notifyDataSetChanged()
+                }
+            }
+        }
+    }
+
+
 
 }
 
